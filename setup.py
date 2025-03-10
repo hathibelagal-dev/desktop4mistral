@@ -16,6 +16,7 @@ setup(
     python_requires=">=3.11",
     install_requires=[
         "PySide6",
+        "requests"
     ],
     include_package_data=True,
     package_data={

@@ -1,16 +1,19 @@
-from PySide6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,QTextEdit, QTableWidget, QTableWidgetItem, QPushButton, QHeaderView
+from PySide6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,QTextEdit, QTableWidget, QTableWidgetItem, QPushButton, QHeaderView, QMainWindow, QMenu
 from PySide6.QtCore import Qt, QEvent
-from PySide6.QtGui import QColor, QFontDatabase, QFont
+from PySide6.QtGui import QColor, QFontDatabase, QFont, QAction
 from .__init__ import __app_title__
+from .mistral.client import Client
 import pkg_resources
 
 class ChatWindow(QMainWindow):
     def __init__(self):
         super().__init__()
+        self.mistralClient = Client()
         self.setWindowTitle(__app_title__)
         self.setGeometry(100, 100, 1280, 720)
-        self.initFonts()
+        self.initFonts()        
         self.initUI()
+        self.initMenu()
 
     def initFonts(self):
         font_id = QFontDatabase.addApplicationFont(
@@ -25,6 +28,27 @@ class ChatWindow(QMainWindow):
             self.font_family = QFontDatabase.applicationFontFamilies(font_id)[0]
             print(f"Loaded font: {self.font_family}")
 
+    def initMenu(self):
+        menu_bar = self.menuBar()
+        file_menu = menu_bar.addMenu("File")
+        new_action = QAction("New", self)
+        new_action.triggered.connect(self.new_chat)
+        file_menu.addAction(new_action)
+        file_menu.addSeparator()  
+        exit_action = QAction("Exit", self)
+        exit_action.triggered.connect(self.close)        
+        file_menu.addAction(exit_action)
+
+        models_menu = menu_bar.addMenu("Models")
+        for model in self.mistralClient.listModels():
+            model_action = QAction(model, self)
+            model_action.triggered.connect(lambda _, model=model: self.mistralClient.setModel(model))
+            models_menu.addAction(model_action)
+
+    def new_chat(self):
+        self.chat_display.setRowCount(0)
+        self.input_field.clear()
+        self.scroll_to_bottom()
 
     def initUI(self):
         main_widget = QWidget()
@@ -159,13 +183,12 @@ class ChatWindow(QMainWindow):
         llm_response = self.get_llm_response(user_message)
         row_count = self.chat_display.rowCount()
         self.chat_display.insertRow(row_count)
-        sender_item = QTableWidgetItem("LLM")
+        sender_item = QTableWidgetItem(self.mistralClient.model_id)
         sender_item.setForeground(QColor("#ffb080"))
         response_item = QTableWidgetItem(llm_response)
         response_item.setForeground(QColor("#e0e0e0"))
         self.chat_display.setItem(row_count, 0, sender_item)
         self.chat_display.setItem(row_count, 1, response_item)
-
         self.chat_display.scrollToBottom()
         self.input_field.clear()
 
