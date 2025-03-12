@@ -58,7 +58,7 @@ or
 python3 -m desktop4mistral.main
 ```
 
-### Usage
+## Usage
 
 - Launch the application
 - Select a Mistral model from the "Models" menu
@@ -66,10 +66,10 @@ python3 -m desktop4mistral.main
 - Press Ctrl+Enter or click "Send" to submit
 - View responses in the chat window
 
-### Support
+## Support
 For issues and feature requests, please use the GitHub [Issues](https://github.com/hathibelagal-dev/desktop4mistral/issues) page.
 
-### License
+## License
 
 This project is licensed under the GNU General Public License v3 (GPLv3) - see the LICENSE file for details.
 
