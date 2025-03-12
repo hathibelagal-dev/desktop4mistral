@@ -21,7 +21,7 @@ desktop4mistral is a Python-based desktop application that provides a user-frien
 
 ## Screenshots
 
-*(Add screenshots of your application here)*
+- TODO
 
 ## Installation
 
