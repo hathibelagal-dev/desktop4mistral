@@ -14,6 +14,7 @@ from PySide6.QtGui import QColor, QFontDatabase, QAction
 from .__init__ import __app_title__
 from .markdown_handler import MarkdownConverter
 from .mistral.client import Client
+from .commands import Commands
 from datetime import datetime
 import pkg_resources
 import threading
@@ -34,6 +35,7 @@ class ChatWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.mistralClient = Client()
+        self.commandsHandler = Commands()
         self.setWindowTitle(__app_title__)
         self.setGeometry(100, 100, 1280, 720)
 
@@ -329,6 +331,11 @@ class ChatWindow(QMainWindow):
 
     def getResponseInBackground(self):
         """Get LLM response in a background thread to prevent UI freezing"""
+        response = self.commandsHandler.handle_command(self.chatContents)
+        if response:
+            self.response_received.emit(response)            
+            return
+        
         try:
             response = self.mistralClient.sendChatMessage(self.chatContents)
             self.response_received.emit(response)
