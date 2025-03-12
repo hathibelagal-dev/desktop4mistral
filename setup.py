@@ -17,6 +17,7 @@ setup(
     install_requires=[
         "PySide6",
         "requests",
+        "markdown"
     ],
     include_package_data=True,
     package_data={

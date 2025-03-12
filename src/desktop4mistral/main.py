@@ -3,8 +3,9 @@ from PySide6.QtWidgets import QApplication
 from .chat_window import ChatWindow
 import os
 
+
 def main():
-    k=None
+    k = None
     if not os.environ.get("MISTRAL_API_KEY"):
         k = input("Please enter your Mistral API key: ")
         if not k:
@@ -17,6 +18,6 @@ def main():
     window.show()
     sys.exit(app.exec())
 
-if __name__ == "__main__":    
+
+if __name__ == "__main__":
     main()
-    
