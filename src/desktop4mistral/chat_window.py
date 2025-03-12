@@ -3,6 +3,8 @@ from PySide6.QtCore import Qt, QEvent
 from PySide6.QtGui import QColor, QFontDatabase, QFont, QAction
 from .__init__ import __app_title__
 from .mistral.client import Client
+from datetime import datetime
+
 import pkg_resources
 
 class ChatWindow(QMainWindow):
@@ -10,10 +12,15 @@ class ChatWindow(QMainWindow):
         super().__init__()
         self.mistralClient = Client()
         self.setWindowTitle(__app_title__)
-        self.setGeometry(100, 100, 1280, 720)
+        self.setGeometry(100, 100, 1280, 720)        
         self.initFonts()        
         self.initUI()
         self.initMenu()
+        self.chatContents = []
+        self.firstSystemMessage()
+
+    def firstSystemMessage(self):
+        self.set_model("mistral-tiny", None)
 
     def initFonts(self):
         font_id = QFontDatabase.addApplicationFont(
@@ -23,10 +30,10 @@ class ChatWindow(QMainWindow):
         )
         if font_id == -1:
             print("Failed to load font. Falling back to default.")
-            self.font_family = "courier"
+            self.fontFamily = "courier"
         else:
-            self.font_family = QFontDatabase.applicationFontFamilies(font_id)[0]
-            print(f"Loaded font: {self.font_family}")
+            self.fontFamily = QFontDatabase.applicationFontFamilies(font_id)[0]
+            print(f"Loaded font: {self.fontFamily}")
 
     def initMenu(self):
         menu_bar = self.menuBar()
@@ -40,15 +47,40 @@ class ChatWindow(QMainWindow):
         file_menu.addAction(exit_action)
 
         models_menu = menu_bar.addMenu("Models")
+        self.modelActions = []
         for model in self.mistralClient.listModels():
             model_action = QAction(model, self)
-            model_action.triggered.connect(lambda _, model=model: self.mistralClient.setModel(model))
+            model_action.setCheckable(True)
+            model_action.setChecked(model == self.mistralClient.model_id)
+            model_action.triggered.connect(
+                lambda _, m=model, a=model_action: self.set_model(m, a)
+            )
+            self.modelActions.append(model_action)
             models_menu.addAction(model_action)
 
+    def set_model(self, model, _):
+        self.mistralClient.setModel(model)
+        print("Switched to " + model)
+        for m in self.modelActions:
+            m.setChecked(m.text() == model)
+        for item in self.mistralClient.model_data:
+            if item["id"] == model:
+                system_message = "Now using " + item["id"] + "\n"
+                system_message += item["description"]
+                if item["default_model_temperature"]:
+                    system_message += "\nTemperature: " + str(item["default_model_temperature"])
+                if item["max_context_length"]:
+                    system_message += "\nMax Context Length: " + str(item["max_context_length"])
+                if item["created"]:
+                    date_created = datetime.fromtimestamp(item["created"])
+                    system_message += "\Model creation date: " + date_created.strftime("%Y-%m-%d") + "\n"
+                self.addSystemMessage(system_message)
+                break
+
     def new_chat(self):
-        self.chat_display.setRowCount(0)
-        self.input_field.clear()
-        self.scroll_to_bottom()
+        self.chatDisplay.setRowCount(0)
+        self.inputField.clear()
+        self.scrollToBottom()
 
     def initUI(self):
         main_widget = QWidget()
@@ -63,15 +95,16 @@ class ChatWindow(QMainWindow):
         layout.setContentsMargins(10, 10, 10, 10)
         layout.setSpacing(10)
 
-        self.chat_display = QTableWidget()
-        self.chat_display.setColumnCount(2)
-        self.chat_display.horizontalHeader().setVisible(False)
-        self.chat_display.setEditTriggers(QTableWidget.NoEditTriggers)
-        self.chat_display.horizontalHeader().setStretchLastSection(True)
-        self.chat_display.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
-        self.chat_display.verticalHeader().setVisible(False)
-        self.chat_display.setShowGrid(False)
-        self.chat_display.setStyleSheet("""
+        self.chatDisplay = QTableWidget()
+        self.chatDisplay.setColumnCount(2)
+        self.chatDisplay.horizontalHeader().setVisible(False)
+        self.chatDisplay.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.chatDisplay.horizontalHeader().setStretchLastSection(True)
+        self.chatDisplay.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
+        self.chatDisplay.verticalHeader().setVisible(False)
+        self.chatDisplay.setShowGrid(False)
+        self.chatDisplay.setWordWrap(True)
+        self.chatDisplay.setStyleSheet("""
             QTableWidget {
                 background-color: #2a2a2a;
                 color: #e0e0e0;
@@ -79,7 +112,7 @@ class ChatWindow(QMainWindow):
                 border-radius: 6px;
                 padding: 10px;
                 font-family: "%s", sans-serif;
-                font-size: 13px;
+                font-size: 16px;
             }
             QHeaderView::section {
                 background-color: #2a2a2a;
@@ -99,20 +132,20 @@ class ChatWindow(QMainWindow):
             QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
                 height: 0px;
             }
-        """%self.font_family)
-        layout.addWidget(self.chat_display)
+        """%self.fontFamily)
+        layout.addWidget(self.chatDisplay)
 
-        layout.addWidget(self.chat_display, stretch=1)
+        layout.addWidget(self.chatDisplay, stretch=1)
 
         input_widget = QWidget()
         input_layout = QHBoxLayout(input_widget)
         input_layout.setContentsMargins(0, 0, 0, 0)
         input_layout.setSpacing(8)
 
-        self.input_field = QTextEdit()
-        self.input_field.setPlaceholderText("Type your message here (Ctrl+Enter to send)...")
-        self.input_field.setFixedHeight(60)
-        self.input_field.setStyleSheet("""
+        self.inputField = QTextEdit()
+        self.inputField.setPlaceholderText("Type your message here (Ctrl+Enter to send)...")
+        self.inputField.setFixedHeight(60)
+        self.inputField.setStyleSheet("""
             QTextEdit {
                 background-color: #353535;
                 color: #e0e0e0;
@@ -120,14 +153,14 @@ class ChatWindow(QMainWindow):
                 border-radius: 6px;
                 padding: 8px;
                 font-family: "%s", sans-serif;                                       
-                font-size: 13px;
+                font-size: 16px;
             }
             QTextEdit:focus {
                 border: 1px solid #00b4ff;
                 background-color: #3a3a3a;
             }
-        """%self.font_family)
-        input_layout.addWidget(self.input_field, stretch=1)
+        """%self.fontFamily)
+        input_layout.addWidget(self.inputField, stretch=1)
 
         send_button = QPushButton("Send")
         send_button.setStyleSheet("""
@@ -138,7 +171,7 @@ class ChatWindow(QMainWindow):
                 border-radius: 6px;
                 padding: 8px 16px;
                 font-family: "%s", sans-serif;                                       
-                font-size: 13px;
+                font-size: 16px;
                 font-weight: 500;
             }
             QPushButton:hover {
@@ -147,51 +180,85 @@ class ChatWindow(QMainWindow):
             QPushButton:pressed {
                 background-color: #0098d4;
             }
-        """%self.font_family)
-        send_button.clicked.connect(self.send_message)
+        """%self.fontFamily)
+        send_button.clicked.connect(self.sendMessage)
         input_layout.addWidget(send_button)
 
         layout.addWidget(input_widget)
 
-        self.input_field.installEventFilter(self)
+        self.inputField.installEventFilter(self)
 
     def eventFilter(self, obj, event):
-        if obj == self.input_field and event.type() == QEvent.KeyPress:
+        if obj == self.inputField and event.type() == QEvent.KeyPress:
             if event.key() == Qt.Key_Return and (event.modifiers() & Qt.ControlModifier):
-                self.send_message()
+                self.sendMessage()
                 return True
         return super().eventFilter(obj, event)
     
-    def scroll_to_bottom(self):
-        scrollbar = self.chat_display.verticalScrollBar()
+    def scrollToBottom(self):
+        scrollbar = self.chatDisplay.verticalScrollBar()
         scrollbar.setValue(scrollbar.maximum())
 
-    def send_message(self):
-        user_message = self.input_field.toPlainText().strip()
+    def addUserMessage(self, user_message):
+        self.chatContents.append({"role": "user", "content": user_message})
+
+    def addAssistantMessage(self, assistant_message):
+        self.chatContents.append({"role": "assistant", "content": assistant_message})
+
+    def addSystemMessage(self, system_message):
+        row_count = self.chatDisplay.rowCount()
+        self.chatDisplay.insertRow(row_count)
+        sender_item = QTableWidgetItem("System")
+        sender_item.setForeground(QColor("#ffb0b0"))
+        sender_item.setTextAlignment(Qt.AlignTop)
+        message_item = QTableWidgetItem(system_message)
+        message_item.setTextAlignment(Qt.AlignTop)
+        message_item.setForeground(QColor("#e0e0e0"))
+        self.chatDisplay.setItem(row_count, 0, sender_item)
+        self.chatDisplay.setItem(row_count, 1, message_item)
+        self.chatDisplay.resizeRowToContents(row_count)
+        self.chatDisplay.scrollToBottom()
+
+
+    def sendMessage(self):
+        user_message = self.inputField.toPlainText().strip()
         if not user_message:
-            return
-        
-        row_count = self.chat_display.rowCount()
-        self.chat_display.insertRow(row_count)
+            return        
+        self.addUserMessage(user_message)
+        self.inputField.clear()        
+        self.inputField.setText("Waiting for response...")
+        self.inputField.setEnabled(False)
+        row_count = self.chatDisplay.rowCount()
+        self.chatDisplay.insertRow(row_count)
         sender_item = QTableWidgetItem("You")
+        sender_item.setTextAlignment(Qt.AlignTop)
         sender_item.setForeground(QColor("#b0b0ff"))
         message_item = QTableWidgetItem(user_message)
         message_item.setForeground(QColor("#e0e0e0"))
-        self.chat_display.setItem(row_count, 0, sender_item)
-        self.chat_display.setItem(row_count, 1, message_item)
+        message_item.setTextAlignment(Qt.AlignTop)
+        self.chatDisplay.setItem(row_count, 0, sender_item)
+        self.chatDisplay.setItem(row_count, 1, message_item)
+        self.chatDisplay.resizeRowToContents(row_count)
 
-        llm_response = self.get_llm_response(user_message)
-        row_count = self.chat_display.rowCount()
-        self.chat_display.insertRow(row_count)
+        llm_response = self.getLLMResponse()
+        self.addAssistantMessage(llm_response)
+        
+        row_count = self.chatDisplay.rowCount()
+        self.chatDisplay.insertRow(row_count)
         sender_item = QTableWidgetItem(self.mistralClient.model_id)
-        sender_item.setForeground(QColor("#ffb080"))
-        response_item = QTableWidgetItem(llm_response)
+        sender_item.setTextAlignment(Qt.AlignTop)
+        sender_item.setForeground(QColor("#ffb080"))        
+        response_item = QTableWidgetItem(llm_response + "\n")
         response_item.setForeground(QColor("#e0e0e0"))
-        self.chat_display.setItem(row_count, 0, sender_item)
-        self.chat_display.setItem(row_count, 1, response_item)
-        self.chat_display.scrollToBottom()
-        self.input_field.clear()
+        response_item.setTextAlignment(Qt.AlignTop)
+        
+        self.chatDisplay.setItem(row_count, 0, sender_item)
+        self.chatDisplay.setItem(row_count, 1, response_item)
+        self.chatDisplay.resizeRowToContents(row_count)
+        self.chatDisplay.scrollToBottom()
+        self.inputField.clear()
+        self.inputField.setEnabled(True)
+        self.inputField.setFocus()
 
-
-    def get_llm_response(self, user_message):
-        return "OK"
+    def getLLMResponse(self):
+        return self.mistralClient.sendChatMessage(self.chatContents)
