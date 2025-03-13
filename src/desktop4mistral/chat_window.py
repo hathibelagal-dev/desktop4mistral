@@ -37,6 +37,7 @@ class ResponseWorker(QObject):
         
         try:
             response = self.mistral_client.sendChatMessage(self.chat_contents)
+            
             self.finished.emit(response)
         except Exception as e:
             self.finished.emit(f"Error: {str(e)}")

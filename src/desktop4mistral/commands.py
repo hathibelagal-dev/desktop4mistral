@@ -1,4 +1,5 @@
 import requests
+from .helpers.wikitomarkdown import WikiToMD
 
 class Commands:
     def system_prompt(self):
@@ -38,6 +39,13 @@ class Commands:
             except PermissionError:
                 return "I don't have permission to read that file."
             except Exception as e:
-                return f"An unexpected error occurred: {e}"        
-
+                return f"An unexpected error occurred: {e}"            
+        elif command == "/wiki":
+            to_read = message[len(command):].strip()
+            print("Now reading wiki:" + to_read)
+            success, contents = WikiToMD.convert(to_read)
+            if success:
+                return f"""The contents of that wiki page are ```\n{contents}```"""
+            else:
+                return "I couldn't read that wiki page."
         return False

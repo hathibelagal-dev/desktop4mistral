@@ -17,7 +17,9 @@ setup(
     install_requires=[
         "PySide6",
         "requests",
-        "markdown"
+        "markdown",
+        "wikipedia",
+        "markdownify"
     ],
     include_package_data=True,
     package_data={
