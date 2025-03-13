@@ -4,13 +4,11 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QHBoxLayout,
     QTextEdit,
-    QTableWidget,
-    QTableWidgetItem,
+    QTextBrowser,
     QPushButton,
-    QHeaderView,
 )
 from PySide6.QtCore import Qt, QEvent, Signal, QObject, QThread
-from PySide6.QtGui import QColor, QFontDatabase, QAction
+from PySide6.QtGui import QColor, QFontDatabase, QAction, QTextCursor
 from .__init__ import __app_title__
 from .markdown_handler import MarkdownConverter
 from .mistral.client import Client
@@ -47,10 +45,10 @@ class ChatWindow(QMainWindow):
     response_received = Signal(str)
 
     COLORS = {
-        "USER": QColor("#b0b0ff"),
-        "SYSTEM": QColor("#ffb0b0"),
-        "ASSISTANT": QColor("#ffb080"),
-        "TEXT": QColor("#e0e0e0"),
+        "USER": "#b0b0ff",
+        "SYSTEM": "#ffb0b0",
+        "ASSISTANT": "#ffb080",
+        "TEXT": "#e0e0e0",
     }
 
     def __init__(self):
@@ -59,6 +57,7 @@ class ChatWindow(QMainWindow):
 
         self.mistralClient = Client()
         self.commandsHandler = Commands()
+        self.markdownConverter = MarkdownConverter()
         self.setWindowTitle(__app_title__)
         self.setGeometry(100, 100, 1280, 720)
 
@@ -151,13 +150,12 @@ class ChatWindow(QMainWindow):
 
     def new_chat(self):
         """Clear the chat display and start a new conversation"""
-        self.chatDisplay.setRowCount(0)
+        self.chatDisplay.clear()
         self.inputField.clear()
         self.chatContents = [{
             "role": "user",
             "content": self.commandsHandler.system_prompt()
         }]
-        self.scrollToBottom()
 
     def initUI(self):
         """Initialize the user interface components"""
@@ -170,22 +168,12 @@ class ChatWindow(QMainWindow):
         layout.setContentsMargins(10, 10, 10, 10)
         layout.setSpacing(10)
 
-        # Chat display area
-        self.chatDisplay = QTableWidget()
-        self.chatDisplay.setColumnCount(2)
-        self.chatDisplay.horizontalHeader().setVisible(False)
-        self.chatDisplay.setEditTriggers(QTableWidget.NoEditTriggers)
-        self.chatDisplay.horizontalHeader().setStretchLastSection(True)
-        self.chatDisplay.horizontalHeader().setSectionResizeMode(
-            0, QHeaderView.ResizeToContents
-        )
-        self.chatDisplay.verticalHeader().setVisible(False)
-        self.chatDisplay.setShowGrid(False)
-        self.chatDisplay.setWordWrap(True)
-
+        # Chat display area with QTextBrowser
+        self.chatDisplay = QTextBrowser()
+        self.chatDisplay.setOpenExternalLinks(True)
         self.chatDisplay.setStyleSheet(
             f"""
-            QTableWidget {{
+            QTextBrowser {{
                 background-color: #2a2a2a;
                 color: #e0e0e0;
                 border: 1px solid #3a3a3a;
@@ -193,12 +181,6 @@ class ChatWindow(QMainWindow):
                 padding: 10px;
                 font-family: "{self.fontFamily}", sans-serif;
                 font-size: 16px;
-            }}
-            QHeaderView::section {{
-                background-color: #2a2a2a;
-                color: #e0e0e0;
-                border: none;
-                padding: 5px;
             }}
             QScrollBar:vertical {{
                 background: #2a2a2a;
@@ -287,27 +269,40 @@ class ChatWindow(QMainWindow):
 
     def scrollToBottom(self):
         """Scroll the chat display to the bottom"""
-        self.chatDisplay.scrollToBottom()
+        cursor = self.chatDisplay.textCursor()
+        cursor.movePosition(QTextCursor.End)
+        self.chatDisplay.setTextCursor(cursor)
+        self.chatDisplay.ensureCursorVisible()
 
     def addMessageToDisplay(self, sender, message, color):
         """Add a message to the chat display with appropriate formatting"""
-        row_count = self.chatDisplay.rowCount()
-        self.chatDisplay.insertRow(row_count)
-
-        sender_item = QTableWidgetItem(sender)
-        sender_item.setTextAlignment(Qt.AlignTop)
-        sender_item.setForeground(color)
-
-        message = message + "\n"
-        message_item = QTableWidgetItem(message)
-        message_item.setTextAlignment(Qt.AlignTop)
-        message_item.setForeground(self.COLORS["TEXT"])
-
-        self.chatDisplay.setItem(row_count, 0, sender_item)
-        self.chatDisplay.setItem(row_count, 1, message_item)
-
-        self.chatDisplay.resizeRowToContents(row_count)
+        message_html = f"""
+        <div style="margin-bottom: 16px;">
+            <span style="color: {color}; font-weight: bold;">{sender}</span>
+            <br/>
+            <span style="color: {self.COLORS['TEXT']};">
+                {self.formatMessageContent(message)}
+            </span>
+        </div>
+        """
+        
+        # Append to chat display
+        cursor = self.chatDisplay.textCursor()
+        cursor.movePosition(QTextCursor.End)
+        self.chatDisplay.append(message_html)
         self.scrollToBottom()
+
+    def formatMessageContent(self, message):
+        """Format message content with proper handling for code blocks and markdown"""
+        # You can use your markdown_handler here to convert markdown to HTML
+        # For now, we'll do basic formatting for code blocks
+        formatted_message = message.replace("<", "&lt;").replace(">", "&gt;")
+        
+        # Handle code blocks (simple implementation)
+        # For a complete solution, use a proper markdown converter
+        formatted_message = formatted_message.replace("\n", "<br>")
+        
+        return formatted_message
 
     def addUserMessage(self, message):
         """Add a user message to the chat history and display"""
