@@ -1,12 +1,13 @@
 import wikipedia
 from markdownify import markdownify
+import requests
 
-class WikiToMD:
+class WikiHelper:
     @staticmethod
-    def convert(title):
+    def convert_to_md(pageid):
         try:
-            page = wikipedia.page(title)
-            
+            page = wikipedia.page(pageid=pageid)
+            print(page)
             markdown_content = markdownify(
                 page.content,
                 heading_style="ATX",
@@ -22,4 +23,19 @@ class WikiToMD:
         except wikipedia.exceptions.PageError:
             return False, "Page not found"
         
-print(WikiToMD.convert("Elon_(name)"))
+    @staticmethod
+    def search(query):
+        url = "https://en.wikipedia.org/w/api.php"
+        params = {
+            "action": "query",
+            "format": "json",
+            "list": "search",
+            "srsearch": query
+        }
+        response = requests.get(url, params=params)
+        data = response.json()
+        search_results = data["query"]["search"]
+        search_results = [{'title': result['title'], 'pageid': result['pageid']} for result in search_results]
+        return search_results
+        
+    
