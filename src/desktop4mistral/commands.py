@@ -15,9 +15,6 @@ class Commands:
         message.
         """
 
-    def handle_llm_command(self, messages):
-        message = messages[-1]["content"]
-
     def handle_command(self, messages):
         message = messages[-1]["content"]
         command = message.strip().split(" ")[0]
