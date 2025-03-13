@@ -1,6 +1,23 @@
 import requests
 
 class Commands:
+    def system_prompt(self):
+        return """You can run python and javascript by saying /py
+        or /js followed by the code you want to run enclosed in a
+        pair of << and >>. You should prefer using this feature
+        instead of working out the calculation yourself. Note, this
+        is just for running the code. Don't use this syntax unnecessarily,
+        like when you just want to tell the user how to do something. And when
+        you use this syntax, don't say anything else in that message.
+
+        To read a file in the local filesystem, just say /read followed
+        by the absolute path of file. Don't say anything else in that
+        message.
+        """
+
+    def handle_llm_command(self, messages):
+        message = messages[-1]["content"]
+
     def handle_command(self, messages):
         message = messages[-1]["content"]
         command = message.strip().split(" ")[0]

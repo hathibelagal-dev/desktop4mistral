@@ -9,7 +9,7 @@ from PySide6.QtWidgets import (
     QPushButton,
     QHeaderView,
 )
-from PySide6.QtCore import Qt, QEvent, Signal
+from PySide6.QtCore import Qt, QEvent, Signal, QObject, QThread
 from PySide6.QtGui import QColor, QFontDatabase, QAction
 from .__init__ import __app_title__
 from .markdown_handler import MarkdownConverter
@@ -17,14 +17,34 @@ from .mistral.client import Client
 from .commands import Commands
 from datetime import datetime
 import pkg_resources
-import threading
+
+
+# Worker class to handle background processing
+class ResponseWorker(QObject):
+    finished = Signal(str)
+    
+    def __init__(self, mistral_client, commands_handler, chat_contents):
+        super().__init__()
+        self.mistral_client = mistral_client
+        self.commands_handler = commands_handler
+        self.chat_contents = chat_contents
+        
+    def process(self):
+        response = self.commands_handler.handle_command(self.chat_contents)
+        if response:
+            self.finished.emit(response)
+            return
+        
+        try:
+            response = self.mistral_client.sendChatMessage(self.chat_contents)
+            self.finished.emit(response)
+        except Exception as e:
+            self.finished.emit(f"Error: {str(e)}")
 
 
 class ChatWindow(QMainWindow):
-    # Define signals for thread-safe UI updates
     response_received = Signal(str)
 
-    # Define color constants
     COLORS = {
         "USER": QColor("#b0b0ff"),
         "SYSTEM": QColor("#ffb0b0"),
@@ -34,22 +54,31 @@ class ChatWindow(QMainWindow):
 
     def __init__(self):
         super().__init__()
+        self.setAttribute(Qt.WA_DeleteOnClose)
+
         self.mistralClient = Client()
         self.commandsHandler = Commands()
         self.setWindowTitle(__app_title__)
         self.setGeometry(100, 100, 1280, 720)
 
-        # Initialize UI components
-        self.chatContents = []
+        self.chatContents = [{
+            "role": "user",
+            "content": self.commandsHandler.system_prompt()
+        }]
         self.initFonts()
         self.initUI()
         self.initMenu()
 
         # Connect signals
-        self.response_received.connect(self.updateAssistantResponse)
+        self.response_received.connect(self.handleResponse)
 
         # Initialize with first system message
-        self.set_model("mistral-tiny", None)
+        self.set_model("mistral-large-latest", None)
+        
+        # Thread management
+        self.thread = None
+        self.worker = None
+        self.isClosing = False
 
     def initFonts(self):
         """Load custom font for the application"""
@@ -69,7 +98,6 @@ class ChatWindow(QMainWindow):
         """Initialize the application menu bar"""
         menu_bar = self.menuBar()
 
-        # File menu
         file_menu = menu_bar.addMenu("File")
         new_action = QAction("New", self)
         new_action.triggered.connect(self.new_chat)
@@ -79,7 +107,6 @@ class ChatWindow(QMainWindow):
         exit_action.triggered.connect(self.close)
         file_menu.addAction(exit_action)
 
-        # Models menu
         models_menu = menu_bar.addMenu("Models")
         self.modelActions = []
 
@@ -117,12 +144,6 @@ class ChatWindow(QMainWindow):
                         f"Max Context Length: {item['max_context_length']}"
                     )
 
-                if item["created"]:
-                    date_created = datetime.fromtimestamp(item["created"])
-                    system_message.append(
-                        f"Model creation date: {date_created.strftime('%Y-%m-%d')}"
-                    )
-
                 system_message = "\n- ".join(system_message)
                 self.addSystemMessage(system_message)
                 break
@@ -131,7 +152,10 @@ class ChatWindow(QMainWindow):
         """Clear the chat display and start a new conversation"""
         self.chatDisplay.setRowCount(0)
         self.inputField.clear()
-        self.chatContents = []
+        self.chatContents = [{
+            "role": "user",
+            "content": self.commandsHandler.system_prompt()
+        }]
         self.scrollToBottom()
 
     def initUI(self):
@@ -248,7 +272,6 @@ class ChatWindow(QMainWindow):
         input_layout.addWidget(send_button)
         layout.addWidget(input_widget)
 
-        # Install event filter for keyboard shortcuts
         self.inputField.installEventFilter(self)
 
     def eventFilter(self, obj, event):
@@ -270,22 +293,18 @@ class ChatWindow(QMainWindow):
         row_count = self.chatDisplay.rowCount()
         self.chatDisplay.insertRow(row_count)
 
-        # Create sender item
         sender_item = QTableWidgetItem(sender)
         sender_item.setTextAlignment(Qt.AlignTop)
         sender_item.setForeground(color)
 
-        # Create message item
         message = message + "\n"
         message_item = QTableWidgetItem(message)
         message_item.setTextAlignment(Qt.AlignTop)
         message_item.setForeground(self.COLORS["TEXT"])
 
-        # Add items to the table
         self.chatDisplay.setItem(row_count, 0, sender_item)
         self.chatDisplay.setItem(row_count, 1, message_item)
 
-        # Resize row and scroll
         self.chatDisplay.resizeRowToContents(row_count)
         self.scrollToBottom()
 
@@ -305,12 +324,13 @@ class ChatWindow(QMainWindow):
         """Add a system message to the display (not added to chat history)"""
         self.addMessageToDisplay("System", message, self.COLORS["SYSTEM"])
 
-    def updateAssistantResponse(self, response):
-        """Update UI with assistant response (called from the main thread)"""
-        self.addAssistantMessage(response)
-        self.inputField.clear()
-        self.inputField.setEnabled(True)
-        self.inputField.setFocus()
+    def handleResponse(self, response):
+        """Safely handle response from the worker thread"""
+        if not self.isClosing:
+            self.addAssistantMessage(response)
+            self.inputField.clear()
+            self.inputField.setEnabled(True)
+            self.inputField.setFocus()
 
     def sendMessage(self):
         """Send the user message and get a response"""
@@ -318,29 +338,50 @@ class ChatWindow(QMainWindow):
         if not user_message:
             return
 
-        # Add user message to display
         self.addUserMessage(user_message)
 
-        # Disable input while waiting for response
         self.inputField.clear()
         self.inputField.setText("Waiting for response...")
         self.inputField.setEnabled(False)
 
-        # Get response in a separate thread
-        threading.Thread(target=self.getResponseInBackground, daemon=True).start()
-
-    def getResponseInBackground(self):
-        """Get LLM response in a background thread to prevent UI freezing"""
-        response = self.commandsHandler.handle_command(self.chatContents)
-        if response:
-            self.response_received.emit(response)            
-            return
+        # Clean up any existing thread
+        self.cleanupThread()
         
-        try:
-            response = self.mistralClient.sendChatMessage(self.chatContents)
-            self.response_received.emit(response)
-        except Exception as e:
-            self.response_received.emit(f"Error: {str(e)}")
-        finally:
-            self.inputField.setEnabled(True)
-            self.inputField.setFocus()
+        # Create a new thread and worker
+        self.thread = QThread()
+        self.worker = ResponseWorker(self.mistralClient, self.commandsHandler, self.chatContents)
+        self.worker.moveToThread(self.thread)
+        
+        # Connect signals
+        self.thread.started.connect(self.worker.process)
+        self.worker.finished.connect(self.handleResponse)
+        self.worker.finished.connect(self.cleanupThread)
+        
+        # Start the thread
+        self.thread.start()
+
+    def cleanupThread(self):
+        """Safely clean up thread and worker"""
+        if self.thread and self.thread.isRunning():
+            self.thread.quit()
+            self.thread.wait()
+            
+        # Reset references
+        self.thread = None
+        self.worker = None
+
+    def closeEvent(self, event):
+        """Handle window close event"""
+        self.isClosing = True
+        
+        # Stop any running thread before closing
+        if self.thread and self.thread.isRunning():
+            self.thread.quit()
+            self.thread.wait(1000)  # Wait up to 1 second
+            
+            # If thread is still running, terminate it
+            if self.thread.isRunning():
+                self.thread.terminate()
+                self.thread.wait()
+                
+        super().closeEvent(event)
