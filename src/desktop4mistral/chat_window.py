@@ -62,7 +62,7 @@ class ChatWindow(QMainWindow):
         self.setGeometry(100, 100, 1280, 720)
 
         self.chatContents = [{
-            "role": "user",
+            "role": "system",
             "content": self.commandsHandler.system_prompt()
         }]
         self.initFonts()
@@ -179,7 +179,7 @@ class ChatWindow(QMainWindow):
                 border: 1px solid #3a3a3a;
                 border-radius: 6px;
                 padding: 10px;
-                font-family: "{self.fontFamily}", sans-serif;
+                font-family: "{self.fontFamily}", courier;
                 font-size: 16px;
             }}
             QScrollBar:vertical {{
@@ -217,7 +217,7 @@ class ChatWindow(QMainWindow):
                 border: 1px solid #454545;
                 border-radius: 6px;
                 padding: 8px;
-                font-family: "{self.fontFamily}", sans-serif;
+                font-family: "{self.fontFamily}", courier;
                 font-size: 16px;
             }}
             QTextEdit:focus {{
@@ -238,7 +238,7 @@ class ChatWindow(QMainWindow):
                 border: none;
                 border-radius: 6px;
                 padding: 8px 16px;
-                font-family: "{self.fontFamily}", sans-serif;
+                font-family: "{self.fontFamily}", courier;
                 font-size: 16px;
                 font-weight: 500;
             }}

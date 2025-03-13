@@ -20,7 +20,6 @@ class Client:
         url = self.base_url + "models"
         response = requests.get(url, headers=self.headers)
         self.model_data = response.json()["data"]
-        print(self.model_data)
         return self.model_data
 
     def setModel(self, model_id):
@@ -40,5 +39,5 @@ class Client:
             "model": self.model_id,
             "messages": messages,
         }
-        response = requests.post(url, headers=self.headers, json=config)
-        return response.json()["choices"][0]["message"]["content"]
+        response = requests.post(url, headers=self.headers, json=config).json()
+        return response["choices"][0]["message"]["content"]
