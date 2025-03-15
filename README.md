@@ -1,4 +1,4 @@
-![bilde](https://github.com/user-attachments/assets/626a94aa-909e-4910-9828-625ee8b335bb)# desktop4mistral
+# desktop4mistral
 
 A powerful desktop client for interacting with Mistral Large Language Models (LLMs)
 
