@@ -8,12 +8,11 @@ from PySide6.QtWidgets import (
     QPushButton,
 )
 from PySide6.QtCore import Qt, QEvent, Signal, QObject, QThread
-from PySide6.QtGui import QColor, QFontDatabase, QAction, QTextCursor
+from PySide6.QtGui import QFontDatabase, QAction, QTextCursor
 from .__init__ import __app_title__
 from .markdown_handler import MarkdownConverter
 from .mistral.client import Client
 from .commands import Commands
-from datetime import datetime
 import pkg_resources
 
 class ResponseWorker(QObject):
@@ -297,7 +296,7 @@ class ChatWindow(QMainWindow):
         formatted_message = message.replace("<", "&lt;").replace(">", "&gt;")
         
         # Handle code blocks (simple implementation)
-        # For a complete solution, use a proper markdown converter
+        # Todo: have a better solution
         formatted_message = formatted_message.replace("\n", "<br>")
         
         return formatted_message
