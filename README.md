@@ -32,7 +32,26 @@ desktop4mistral is a Python-based desktop application that provides a user-frien
 - Python 3.11 or 3.12
 - Mistral API key (get it from [Mistral AI](https://mistral.ai/))
 
-### Setup
+## Quickstart
+
+Install using `pip`.
+```bash
+pip install desktop4mistral
+```
+
+And run...
+```bash
+export MISTRAL_API_KEY='your-api-key-here'
+desktop4mistral
+```
+
+or
+
+```bash
+python3 -m desktop4mistral.main
+```
+
+### Setup for development
 
 1. Clone the repository:
 ```bash
@@ -43,21 +62,6 @@ cd desktop4mistral
 2. Install the app and its dependencies:
 ```bash
 pip3 install .
-```
-
-3. Set your Mistral API key as an environment variable:
-```
-export MISTRAL_API_KEY='your-api-key-here'
-```
-
-4. Run the application
-```bash
-desktop4mistral
-```
-or
-
-```bash
-python3 -m desktop4mistral.main
 ```
 
 ## Usage
