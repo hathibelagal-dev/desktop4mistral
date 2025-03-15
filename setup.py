@@ -20,7 +20,10 @@ setup(
         "markdown",
         "wikipedia",
         "markdownify",
-        "git2string"
+        "git2string",
+        "str2speech",
+        "sounddevice",
+        "scipy"
     ],
     include_package_data=True,
     package_data={

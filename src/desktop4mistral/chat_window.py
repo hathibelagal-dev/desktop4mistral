@@ -14,6 +14,8 @@ from .markdown_handler import MarkdownConverter
 from .mistral.client import Client
 from .commands import Commands
 import pkg_resources
+from .state import State
+from .speaker import Speaker
 
 class ResponseWorker(QObject):
     finished = Signal(str)
@@ -22,7 +24,7 @@ class ResponseWorker(QObject):
         super().__init__()
         self.mistral_client = mistral_client
         self.commands_handler = commands_handler
-        self.chat_contents = chat_contents
+        self.chat_contents = chat_contents        
         
     def process(self):
         response = self.commands_handler.handle_command(self.chat_contents)
@@ -53,6 +55,7 @@ class ChatWindow(QMainWindow):
         self.setAttribute(Qt.WA_DeleteOnClose)
 
         self.mistralClient = Client()
+        self.speaker = None
         self.commandsHandler = Commands()
         self.markdownConverter = MarkdownConverter()
         self.setWindowTitle(__app_title__)
@@ -310,6 +313,10 @@ class ChatWindow(QMainWindow):
         """Add an assistant message to the chat history and display"""
         self.chatContents.append({"role": "assistant", "content": message})
         formatted_message = self.removeHidden(message)
+        if State.get_talk_mode():
+            if not self.speaker:
+                self.speaker = Speaker()
+            self.speaker.speak(formatted_message)
         self.addMessageToDisplay(
             self.mistralClient.model_id, formatted_message, self.COLORS["ASSISTANT"]
         )

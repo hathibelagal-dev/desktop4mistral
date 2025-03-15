@@ -1,6 +1,7 @@
 import requests
 from .helpers.wikitomarkdown import WikiHelper
 from git2string.stringify import stringify_git
+from .state import State
 
 class Commands:
     HIDDEN_IDENTIFIER_START = "|6100|"
@@ -59,6 +60,16 @@ class Commands:
             print("Now reading git:" + to_read)
             contents = stringify_git(to_read)
             print(contents)
-            return f"""{self.HIDDEN_IDENTIFIER_START} The contents of that git repo are ```\n{contents}```\n{self.HIDDEN_IDENTIFIER_END}\nI have now read the contents of that repo."""        
+            return f"""{self.HIDDEN_IDENTIFIER_START} The contents of that git repo are ```\n{contents}```\n{self.HIDDEN_IDENTIFIER_END}\nI have now read the contents of that repo."""
+        elif command == "/talk":
+            to_read = message[len(command):].strip()
+            if to_read == "on":
+                State.set_talk_mode(True)
+                return "Okay, I can talk now."
+            elif to_read == "off":
+                State.set_talk_mode(False)
+                return "Okay, I won't talk anymore."
+            else:
+                return "Umm, I don't understand. You can either say /talk on or /talk off."
 
         return False
