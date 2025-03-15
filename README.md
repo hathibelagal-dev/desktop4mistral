@@ -1,4 +1,4 @@
-# desktop4mistral
+![bilde](https://github.com/user-attachments/assets/626a94aa-909e-4910-9828-625ee8b335bb)# desktop4mistral
 
 A powerful desktop client for interacting with Mistral Large Language Models (LLMs)
 
@@ -21,7 +21,9 @@ desktop4mistral is a Python-based desktop application that provides a user-frien
 
 ## Screenshots
 
-- TODO
+<img src="https://github.com/hathibelagal-dev/desktop4mistral/blob/main/sshots/0.png" style="width:800px;"/>
+
+<img src="https://github.com/hathibelagal-dev/desktop4mistral/blob/main/sshots/1.png" style="width:800px;"/>
 
 ## Installation
 
