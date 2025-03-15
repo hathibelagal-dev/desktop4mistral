@@ -21,9 +21,9 @@ desktop4mistral is a Python-based desktop application that provides a user-frien
 
 ## Screenshots
 
-<img src="https://github.com/hathibelagal-dev/desktop4mistral/blob/main/sshots/0.png" style="width:800px;"/>
+<img src="https://raw.githubusercontent.com/hathibelagal-dev/desktop4mistral/refs/heads/main/sshots/0.png" style="width:800px;"/>
 
-<img src="https://github.com/hathibelagal-dev/desktop4mistral/blob/main/sshots/1.png" style="width:800px;"/>
+<img src="https://raw.githubusercontent.com/hathibelagal-dev/desktop4mistral/refs/heads/main/sshots/1.png" style="width:800px;"/>
 
 ## Installation
 
