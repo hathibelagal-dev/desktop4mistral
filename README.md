@@ -74,6 +74,7 @@ Desktop4Mistral supports several commands.
 - `/git` to read a github repository
 - `/wiki_search` to search Wikipedia
 - `/wiki_id` to look up the contents of a Wikipedia page
+- `/talk` to turn talking `on` or `off`. Uses Suno's `bark-small` model. Very alpha feature currently.
 
 ## Support
 For issues and feature requests, please use the GitHub [Issues](https://github.com/hathibelagal-dev/desktop4mistral/issues) page.
