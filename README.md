@@ -66,6 +66,15 @@ python3 -m desktop4mistral.main
 - Press Ctrl+Enter or click "Send" to submit
 - View responses in the chat window
 
+## Commands
+
+Desktop4Mistral supports several commands.
+
+- `/read` to read a local or remote file
+- `/git` to read a github repository
+- `/wiki_search` to search Wikipedia
+- `/wiki_id` to look up the contents of a Wikipedia page
+
 ## Support
 For issues and feature requests, please use the GitHub [Issues](https://github.com/hathibelagal-dev/desktop4mistral/issues) page.
 

@@ -42,7 +42,7 @@ class Commands:
             print("Now reading wiki:" + to_read)
             success, contents = WikiHelper.convert_to_md(to_read)
             if success:
-                return f"""The contents of that wiki page are ```\n{contents}\n```"""
+                return f"""{self.HIDDEN_IDENTIFIER_START}The contents of that wiki page are ```\n{contents}\n```\n{self.HIDDEN_IDENTIFIER_END} I have read the contents of that wiki page. You can now ask me questions about it."""
             else:
                 return "I couldn't read that wiki page."
         elif command == "/wiki_search":
@@ -52,12 +52,13 @@ class Commands:
             contents = "```\n"
             for result in results:
                 contents += f"{result['pageid']} --> {result['title']}\n\n"
-            contents += "```"
+            contents += "```\n\nPick an id and say /wiki_id <id> if you want me to read that page."
             return contents
         elif command == "/git":
             to_read = message[len(command):].strip()
             print("Now reading git:" + to_read)
             contents = stringify_git(to_read)
+            print(contents)
             return f"""{self.HIDDEN_IDENTIFIER_START} The contents of that git repo are ```\n{contents}```\n{self.HIDDEN_IDENTIFIER_END}\nI have now read the contents of that repo."""        
 
         return False
