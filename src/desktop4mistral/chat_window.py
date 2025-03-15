@@ -16,8 +16,6 @@ from .commands import Commands
 from datetime import datetime
 import pkg_resources
 
-
-# Worker class to handle background processing
 class ResponseWorker(QObject):
     finished = Signal(str)
     
@@ -312,9 +310,17 @@ class ChatWindow(QMainWindow):
     def addAssistantMessage(self, message):
         """Add an assistant message to the chat history and display"""
         self.chatContents.append({"role": "assistant", "content": message})
+        formatted_message = self.removeHidden(message)
         self.addMessageToDisplay(
-            self.mistralClient.model_id, message, self.COLORS["ASSISTANT"]
+            self.mistralClient.model_id, formatted_message, self.COLORS["ASSISTANT"]
         )
+
+    def removeHidden(self, message):
+        if self.commandsHandler.HIDDEN_IDENTIFIER_START in message:
+            start_index = message.index(self.commandsHandler.HIDDEN_IDENTIFIER_START)
+            end_index = message.index(self.commandsHandler.HIDDEN_IDENTIFIER_END)
+            message = message[:start_index] + message[end_index + len(self.commandsHandler.HIDDEN_IDENTIFIER_END):]
+        return message.strip()
 
     def addSystemMessage(self, message):
         """Add a system message to the display (not added to chat history)"""

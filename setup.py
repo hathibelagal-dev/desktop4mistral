@@ -19,7 +19,8 @@ setup(
         "requests",
         "markdown",
         "wikipedia",
-        "markdownify"
+        "markdownify",
+        "git2string"
     ],
     include_package_data=True,
     package_data={
