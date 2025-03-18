@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as f:
 
 setup(
     name="desktop4mistral",
-    version="0.0.3",
+    version="0.0.4",
     author="Ashraff Hathibelagal",
     description="A powerful desktop client for Mistral LLMs",
     long_description=long_description,
@@ -21,7 +21,7 @@ setup(
         "wikipedia",
         "markdownify",
         "git2string",
-        "str2speech",
+        "str2speech>=0.2.5",
         "sounddevice",
         "scipy"
     ],
