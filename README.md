@@ -5,11 +5,9 @@ https://github.com/user-attachments/assets/0ec0bec8-2b35-4c74-9d22-2739935db5b5
 A powerful desktop client for interacting with Mistral Large Language Models (LLMs)
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-
-![Total Downloads](https://img.shields.io/pepy/dt/desktop4mistral)
-
+[![PyPI - Version](https://img.shields.io/pypi/v/desktop4mistral)](https://pypi.org/project/desktop4mistral/)
+[![Total Downloads](https://img.shields.io/pepy/dt/desktop4mistral)](https://pypi.org/project/desktop4mistral/)
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/desktop4mistral)
-
 ![PyPI - Status](https://img.shields.io/pypi/status/desktop4mistral)
 
 ## Overview

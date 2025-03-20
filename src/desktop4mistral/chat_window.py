@@ -165,7 +165,7 @@ class ChatWindow(QMainWindow):
         self.chatDisplay.setStyleSheet(
             f"""
             QTextBrowser {{
-                background-color: #2a2a2a;
+                background-color: #1f1f1f;
                 color: #e0e0e0;
                 border: 1px solid #3a3a3a;
                 border-radius: 6px;
@@ -265,9 +265,21 @@ class ChatWindow(QMainWindow):
         self.chatDisplay.setTextCursor(cursor)
         self.chatDisplay.ensureCursorVisible()
 
+    first_message = True
     def addMessageToDisplay(self, sender, message, color):
         """Add a message to the chat display with appropriate formatting"""
+        styles = """<style>
+            pre {
+                font-weight: bold;
+                color: #1db56a;
+            }
+            code {
+                font-weight: bold;
+                color: #1fbf6f;
+            }
+        </style>"""
         message_html = f"""
+        {styles if self.first_message else ''}        
         <div style="margin-bottom: 16px;">
             <span style="color: {color}; font-weight: bold;">{sender}</span>
             <div style="color: {self.COLORS['TEXT']};">
