@@ -80,7 +80,8 @@ Desktop4Mistral supports several commands.
 - `/git` to read a github repository
 - `/wiki_search` to search Wikipedia
 - `/wiki_id` to look up the contents of a Wikipedia page
-- `/talk` to turn talking `on` or `off`. Uses Kokoro-82M as the TTS model. Expect reasonable performance.
+- `/save` to save the entire chat session as a JSON file
+- `/talk` to turn talking `on` or `off`. Uses Kokoro as the TTS model. You can expect reasonable performance on most hardware.
 
 ## Support
 For issues and feature requests, please use the GitHub [Issues](https://github.com/hathibelagal-dev/desktop4mistral/issues) page.
