@@ -1,5 +1,7 @@
 # desktop4mistral
 
+https://github.com/user-attachments/assets/0ec0bec8-2b35-4c74-9d22-2739935db5b5
+
 A powerful desktop client for interacting with Mistral Large Language Models (LLMs)
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
