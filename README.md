@@ -16,7 +16,7 @@ desktop4mistral is a Python-based desktop application that provides a user-frien
 - Support for multiple Mistral models with easy switching
 - Custom FiraCode font for better code readability
 - Markdown support for formatted responses
-- Command system (e.g., `/read` to fetch and display file contents)
+- Command system (e.g., `/read` to fetch any local file or webpage, `wiki_search` to search Wikipedia, etc)
 - Threaded responses to maintain UI responsiveness
 - Keyboard shortcuts (Ctrl+Enter to send messages)
 - Dark theme with color-coded messages (User, System, Assistant)
@@ -78,7 +78,7 @@ pip3 install .
 
 Desktop4Mistral supports several commands.
 
-- `/read` to read a local or remote file
+- `/read` to read a local or remote file. Can also be used to reload a previous chat session.
 - `/git` to read a github repository
 - `/wiki_search` to search Wikipedia
 - `/wiki_id` to look up the contents of a Wikipedia page
