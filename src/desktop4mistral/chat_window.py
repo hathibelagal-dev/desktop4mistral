@@ -277,6 +277,9 @@ class ChatWindow(QMainWindow):
                 font-weight: bold;
                 color: #1fbf6f;
             }
+            ul {
+                type: square;
+            }
         </style>"""
         message_html = f"""
         {styles if self.first_message else ''}        
