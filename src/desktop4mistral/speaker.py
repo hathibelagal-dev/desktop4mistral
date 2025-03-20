@@ -11,6 +11,7 @@ class Speaker:
     def speak(self, text: str):
         if State.get_talk_mode():
             tfile = tempfile.NamedTemporaryFile(delete=False, suffix=".wav")
+            print(tfile.name)
             self.speaker.text_to_speech(text, tfile.name)
             sample_rate, data = wav.read(tfile.name)
             sd.play(data, sample_rate)

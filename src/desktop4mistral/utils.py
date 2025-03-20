@@ -28,3 +28,16 @@ class Utils:
         with open(filename, "w") as file:
             file.write(contents)
         return filename
+    
+    @staticmethod
+    def to_markdown(messages):
+        filename = Utils.generate_filename("md")
+        with open(filename, "w") as file:
+            for message in messages:
+                if message["role"] == "system":
+                    continue
+                file.write("#### " + message["role"] + "\n\n")
+                file.write(message["content"] + "\n\n")
+                file.write("---\n\n")
+        return filename
+

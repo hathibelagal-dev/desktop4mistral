@@ -6,6 +6,12 @@ A powerful desktop client for interacting with Mistral Large Language Models (LL
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
+![Total Downloads](https://img.shields.io/pepy/dt/desktop4mistral)
+
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/desktop4mistral)
+
+![PyPI - Status](https://img.shields.io/pypi/status/desktop4mistral)
+
 ## Overview
 
 desktop4mistral is a Python-based desktop application that provides a user-friendly interface for chatting with Mistral AI models. Built with PySide6, it offers a modern GUI with features like model selection, chat history, and command support.
@@ -14,12 +20,21 @@ desktop4mistral is a Python-based desktop application that provides a user-frien
 
 - Interactive chat interface with Mistral LLMs
 - Support for multiple Mistral models with easy switching
-- Custom FiraCode font for better code readability
-- Markdown support for formatted responses
-- Command system (e.g., `/read` to fetch any local file or webpage, `wiki_search` to search Wikipedia, etc)
-- Threaded responses to maintain UI responsiveness
-- Keyboard shortcuts (Ctrl+Enter to send messages)
-- Dark theme with color-coded messages (User, System, Assistant)
+- Full Markdown support.
+- Command system (e.g., `/read` to fetch any local file or webpage, `wiki_search` to search Wikipedia, etc).
+- Use `/save_markdown` to save your entire chat as a markdown file, which you could use in other tools, like Obsidian.
+
+## Commands
+
+Desktop4Mistral supports several commands.
+
+- `/read` to read a local or remote file. Can also be used to reload a previous chat session.
+- `/git` to read a github repository
+- `/wiki_search` to search Wikipedia
+- `/wiki_id` to look up the contents of a Wikipedia page
+- `/save` to save the entire chat session as a JSON file
+- `/save_markdown` to save the entire chat session as a markdown file
+- `/talk` to turn talking `on` or `off`. Uses Kokoro as the TTS model. You can expect reasonable performance on most hardware.
 
 ## Screenshots
 
@@ -73,17 +88,6 @@ pip3 install .
 - Type your message in the input field
 - Press Ctrl+Enter or click "Send" to submit
 - View responses in the chat window
-
-## Commands
-
-Desktop4Mistral supports several commands.
-
-- `/read` to read a local or remote file. Can also be used to reload a previous chat session.
-- `/git` to read a github repository
-- `/wiki_search` to search Wikipedia
-- `/wiki_id` to look up the contents of a Wikipedia page
-- `/save` to save the entire chat session as a JSON file
-- `/talk` to turn talking `on` or `off`. Uses Kokoro as the TTS model. You can expect reasonable performance on most hardware.
 
 ## Support
 For issues and feature requests, please use the GitHub [Issues](https://github.com/hathibelagal-dev/desktop4mistral/issues) page.

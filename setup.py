@@ -1,7 +1,11 @@
 from setuptools import setup, find_packages
 
+long_description = ""
 with open("README.md", "r", encoding="utf-8") as f:
-    long_description = f.read()
+    contents = f.readlines()
+    for line in contents:
+        if "user-attachments/assets" not in line:
+            long_description += line
 
 setup(
     name="desktop4mistral",

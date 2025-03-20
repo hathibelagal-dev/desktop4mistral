@@ -125,26 +125,17 @@ class ChatWindow(QMainWindow):
         self.mistralClient.setModel(model)
         print(f"Switched to {model}")
 
-        # Update menu checkboxes
         for action in self.modelActions:
             action.setChecked(action.text() == model)
 
-        # Display model information as system message
         for item in self.mistralClient.model_data:
             if item["id"] == model:
-                system_message = [f"Now using {item['id']}", item["description"]]
-
+                system_message = f"Now using {item['id']}\n\n{item['description']}\n\n"
                 if item["default_model_temperature"]:
-                    system_message.append(
-                        f"Temperature: {item['default_model_temperature']}"
-                    )
-
+                    system_message += f"- Temperature: {item['default_model_temperature']}\n"
                 if item["max_context_length"]:
-                    system_message.append(
-                        f"Max Context Length: {item['max_context_length']}"
-                    )
-
-                system_message = "\n- ".join(system_message)
+                    system_message += f"- Max Context Length: {item['max_context_length']}\n\n"
+                system_message += "Ready."
                 self.addSystemMessage(system_message)
                 break
 
@@ -206,7 +197,7 @@ class ChatWindow(QMainWindow):
 
         self.inputField = QTextEdit()
         self.inputField.setPlaceholderText(
-            "Type your message here (Ctrl+Enter to send)..."
+            "Type your message here (Ctrl+Enter or Cmd+Enter to send)..."
         )
         self.inputField.setFixedHeight(60)
         self.inputField.setStyleSheet(
@@ -279,10 +270,9 @@ class ChatWindow(QMainWindow):
         message_html = f"""
         <div style="margin-bottom: 16px;">
             <span style="color: {color}; font-weight: bold;">{sender}</span>
-            <br/>
-            <span style="color: {self.COLORS['TEXT']};">
+            <div style="color: {self.COLORS['TEXT']};">
                 {self.formatMessageContent(message)}
-            </span>
+            </div>
         </div>
         """
         
@@ -293,16 +283,9 @@ class ChatWindow(QMainWindow):
         self.scrollToBottom()
 
     def formatMessageContent(self, message):
-        """Format message content with proper handling for code blocks and markdown"""
-        # You can use your markdown_handler here to convert markdown to HTML
-        # For now, we'll do basic formatting for code blocks
-        formatted_message = message.replace("<", "&lt;").replace(">", "&gt;")
-        
-        # Handle code blocks (simple implementation)
-        # Todo: have a better solution
-        formatted_message = formatted_message.replace("\n", "<br>")
-        
-        return formatted_message
+        converted_message = self.markdownConverter.convert(message)
+        print(converted_message)
+        return converted_message
 
     def addUserMessage(self, message):
         """Add a user message to the chat history and display"""
@@ -352,20 +335,16 @@ class ChatWindow(QMainWindow):
         self.inputField.setText("Waiting for response...")
         self.inputField.setEnabled(False)
 
-        # Clean up any existing thread
         self.cleanupThread()
         
-        # Create a new thread and worker
         self.thread = QThread()
         self.worker = ResponseWorker(self.mistralClient, self.commandsHandler, self.chatContents)
         self.worker.moveToThread(self.thread)
         
-        # Connect signals
         self.thread.started.connect(self.worker.process)
         self.worker.finished.connect(self.handleResponse)
         self.worker.finished.connect(self.cleanupThread)
         
-        # Start the thread
         self.thread.start()
 
     def cleanupThread(self):
@@ -382,12 +361,9 @@ class ChatWindow(QMainWindow):
         """Handle window close event"""
         self.isClosing = True
         
-        # Stop any running thread before closing
         if self.thread and self.thread.isRunning():
             self.thread.quit()
-            self.thread.wait(1000)  # Wait up to 1 second
-            
-            # If thread is still running, terminate it
+            self.thread.wait(1000)            
             if self.thread.isRunning():
                 self.thread.terminate()
                 self.thread.wait()
