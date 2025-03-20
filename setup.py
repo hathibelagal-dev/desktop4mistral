@@ -9,7 +9,7 @@ with open("README.md", "r", encoding="utf-8") as f:
 
 setup(
     name="desktop4mistral",
-    version="0.0.5",
+    version="0.0.6",
     author="Ashraff Hathibelagal",
     description="A powerful desktop client for Mistral LLMs",
     long_description=long_description,

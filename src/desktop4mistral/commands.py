@@ -17,6 +17,45 @@ class Commands:
         When the user asks a question that starts with /answer, you must give only the answer and no other words should be included in your response.
         You never get to say /answer yourself. That's a banned word for you.
         """
+    
+    @staticmethod
+    def get_tools(self):
+        return [
+            {
+                "type": "function",
+                "function": {
+                    "name": "read_file",
+                    "description": "Read the contents of a local file",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "filename": {
+                                "type": "string",
+                                "description": "The absolute path of the file to read."
+                            }
+                        },
+                        "required": "filename"
+                    }
+                }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "execute_python_code",
+                    "description": "Runs the Python code provided as input and returns the output",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "code": {
+                                "type": "string",
+                                "description": "The Python code to run."
+                            }
+                        },
+                        "required": ["code"]
+                    }
+                }
+            }
+        ]
 
     def handle_command(self, messages):
         message = messages[-1]["content"]
