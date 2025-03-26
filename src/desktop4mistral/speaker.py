@@ -21,4 +21,3 @@ class Speaker:
             sd.play(data, sample_rate)
             tfile.close()
         
-        

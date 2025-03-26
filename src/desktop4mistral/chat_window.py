@@ -4,9 +4,9 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QHBoxLayout,
     QTextEdit,
-    QTextBrowser,
     QPushButton,
 )
+from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtCore import Qt, QEvent, Signal, QObject, QThread
 from PySide6.QtGui import QFontDatabase, QAction, QTextCursor
 from .__init__ import __app_title__
@@ -34,7 +34,6 @@ class ResponseWorker(QObject):
         
         try:
             response = self.mistral_client.sendChatMessage(self.chat_contents)
-            
             self.finished.emit(response)
         except Exception as e:
             self.finished.emit(f"Error: {str(e)}")
@@ -65,17 +64,16 @@ class ChatWindow(QMainWindow):
             "role": "system",
             "content": self.commandsHandler.system_prompt()
         }]
+        self.chat_html = ""
         self.initFonts()
         self.initUI()
         self.initMenu()
 
-        # Connect signals
         self.response_received.connect(self.handleResponse)
+        self.chatDisplay.loadFinished.connect(self.scrollToBottom)
 
-        # Initialize with first system message
         self.set_model("mistral-large-latest", None)
         
-        # Thread management
         self.thread = None
         self.worker = None
         self.isClosing = False
@@ -141,7 +139,8 @@ class ChatWindow(QMainWindow):
 
     def new_chat(self):
         """Clear the chat display and start a new conversation"""
-        self.chatDisplay.clear()
+        self.chat_html = ""
+        self.chatDisplay.setHtml("")
         self.inputField.clear()
         self.chatContents = [{
             "role": "user",
@@ -159,33 +158,14 @@ class ChatWindow(QMainWindow):
         layout.setContentsMargins(10, 10, 10, 10)
         layout.setSpacing(10)
 
-        # Chat display area with QTextBrowser
-        self.chatDisplay = QTextBrowser()
-        self.chatDisplay.setOpenExternalLinks(True)
+        # Chat display area with QWebEngineView
+        self.chatDisplay = QWebEngineView()
         self.chatDisplay.setStyleSheet(
-            f"""
-            QTextBrowser {{
-                background-color: #1f1f1f;
-                color: #e0e0e0;
-                border: 1px solid #3a3a3a;
-                border-radius: 6px;
+            """
+            QWebEngineView {
                 padding: 10px;
-                font-family: "{self.fontFamily}", courier;
-                font-size: 16px;
-            }}
-            QScrollBar:vertical {{
-                background: #2a2a2a;
-                width: 10px;
-                margin: 0px;
-            }}
-            QScrollBar::handle:vertical {{
-                background: #4a4a4a;
-                border-radius: 5px;
-            }}
-            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {{
-                height: 0px;
-            }}
-        """
+            }
+            """
         )
         layout.addWidget(self.chatDisplay, stretch=1)
 
@@ -217,6 +197,8 @@ class ChatWindow(QMainWindow):
             }}
         """
         )
+        self.inputField.setAcceptRichText(False)
+
 
         input_layout.addWidget(self.inputField, stretch=1)
 
@@ -258,31 +240,43 @@ class ChatWindow(QMainWindow):
                 return True
         return super().eventFilter(obj, event)
 
-    def scrollToBottom(self):
-        """Scroll the chat display to the bottom"""
-        cursor = self.chatDisplay.textCursor()
-        cursor.movePosition(QTextCursor.End)
-        self.chatDisplay.setTextCursor(cursor)
-        self.chatDisplay.ensureCursorVisible()
+    def scrollToBottom(self, ok=True):
+        """Scroll the chat display to the bottom after content is loaded"""
+        if ok:
+            self.chatDisplay.page().runJavaScript("window.scrollTo(0, document.body.scrollHeight);")
 
     first_message = True
     def addMessageToDisplay(self, sender, message, color):
         """Add a message to the chat display with appropriate formatting"""
-        styles = """<style>
+        styles_and_scripts = """
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/an-old-hope.min.css"/>
+        <style>
+            body {
+                font-family: "Roboto", sans-serif;";
+                font-size: 16px;
+                margin: 0;
+                padding: 10px;
+                background-color: #2f2f2f;
+                border-radius: 16px;
+                border: solid 1px #00b4ff;
+            }
             pre {
-                font-weight: bold;
-                color: #1db56a;
+                font-family: "Fira Code", courier;
+                white-space: pre-wrap;
             }
             code {
-                font-weight: bold;
-                color: #1fbf6f;
+                font-family: "Fira Code", courier;
             }
             ul {
-                type: square;
+                list-style-type: square;
             }
-        </style>"""
+        </style>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+        """
         message_html = f"""
-        {styles if self.first_message else ''}        
         <div style="margin-bottom: 16px;">
             <span style="color: {color}; font-weight: bold;">{sender}</span>
             <div style="color: {self.COLORS['TEXT']};">
@@ -291,11 +285,13 @@ class ChatWindow(QMainWindow):
         </div>
         """
         
-        # Append to chat display
-        cursor = self.chatDisplay.textCursor()
-        cursor.movePosition(QTextCursor.End)
-        self.chatDisplay.append(message_html)
-        self.scrollToBottom()
+        if self.first_message:
+            self.chat_html = f"<html><head>{styles_and_scripts}</head><body>{message_html}</body></html>"
+            self.first_message = False
+        else:
+            self.chat_html = self.chat_html.replace("</body></html>", f"{message_html}<script>hljs.highlightAll();</script></body></html>")
+        
+        self.chatDisplay.setHtml(self.chat_html)
 
     def formatMessageContent(self, message):
         converted_message = self.markdownConverter.convert(message)

@@ -20,29 +20,12 @@ class Commands:
     
     @staticmethod
     def get_tools(self):
-        return [
-            {
-                "type": "function",
-                "function": {
-                    "name": "read_file",
-                    "description": "Read the contents of a local file",
-                    "parameters": {
-                        "type": "object",
-                        "properties": {
-                            "filename": {
-                                "type": "string",
-                                "description": "The absolute path of the file to read."
-                            }
-                        },
-                        "required": "filename"
-                    }
-                }
-            },
+        return [            
             {
                 "type": "function",
                 "function": {
                     "name": "execute_python_code",
-                    "description": "Runs the Python code provided as input and returns the output",
+                    "description": "Runs the Python code provided as input and returns the stdout it generated.",
                     "parameters": {
                         "type": "object",
                         "properties": {

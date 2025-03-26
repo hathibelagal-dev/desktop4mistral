@@ -5,7 +5,7 @@ __pycache__/
 .DS_Store
 # C extensions
 *.so
-#error_log.txt
+error_log.txt
 # Distribution / packaging
 .Python
 build/
