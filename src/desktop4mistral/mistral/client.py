@@ -58,22 +58,22 @@ class Client:
                 with open(arguments["file"], "r") as f:
                     result = f.read()
             except FileNotFoundError:
-                return "I couldn't find that file."
+                result = "I couldn't find that file."
             except PermissionError:
-                return "I don't have permission to read that file."
+                result = "I don't have permission to read that file."
             except Exception as e:
-                return f"An unexpected error occurred: {e}"
+                result = f"An unexpected error occurred: {e}"
         elif function_name == "write_local_file":
             try:
                 with open(arguments["file"], "w") as f:
                     f.write(arguments["text"])
                     result = "Done."
             except PermissionError:
-                return "I don't have permission to write to that file."
+                result = "I don't have permission to write to that file."
             except Exception as e:
-                return f"An unexpected error occurred: {e}"
+                result = f"An unexpected error occurred: {e}"
         else:
-            return f"Unknown tool function: {function_name}"
+            result = f"Unknown tool function: {function_name}"
 
         time.sleep(3)  # Add a delay after tool execution
         tool_message = {

@@ -20,7 +20,9 @@ desktop4mistral is a Python-based desktop application that provides a user-frien
 - Support for multiple Mistral models with easy switching
 - Full Markdown support.
 - Command system (e.g., `/read` to fetch any local file or webpage, `wiki_search` to search Wikipedia, etc).
+- Some commands also support a more natural language syntax. You can, for instance, say "read the contents of /tmp/myfile.txt".
 - Use `/save_markdown` to save your entire chat as a markdown file, which you could use in other tools, like Obsidian.
+- Supports Python code execution. Ideally, you should first ask it to write some Python code. In the next prompt you can just say something like "run it". This way you can be sure what the model's doing.
 
 ## Commands
 
