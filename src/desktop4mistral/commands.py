@@ -19,13 +19,13 @@ class Commands:
         """
     
     @staticmethod
-    def get_tools(self):
-        return [            
+    def get_tools():
+        return [
             {
                 "type": "function",
                 "function": {
                     "name": "execute_python_code",
-                    "description": "Runs the Python code provided as input and returns the stdout it generated.",
+                    "description": "Runs the Python code provided as input. Returns the console logs generated after running the code.",
                     "parameters": {
                         "type": "object",
                         "properties": {
@@ -37,7 +37,45 @@ class Commands:
                         "required": ["code"]
                     }
                 }
-            }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "read_local_file",
+                    "description": "Reads a file from the local file system. Takes as input an absolute path to the file. Returns the contents of the file as text.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "file": {
+                                "type": "string",
+                                "description": "The file on the local file system to read. Must be an absolute path."
+                            }
+                        },
+                        "required": ["file"]
+                    }
+                }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "write_local_file",
+                    "description": "Writes a file to the local file system. Takes as input an absolute path to the file and the text to write. Returns 'Done.' if the file was written successfully. Otherwise, it returns a string saying what went wrong.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "file": {
+                                "type": "string",
+                                "description": "The file on the local file system to write to. Must be an absolute path."
+                            },
+                            "text": {
+                                "type": "string",
+                                "description": "The text to write to the file."
+                            }
+                        },
+                        "required": ["file", "text"]
+                    }
+                }
+            },
         ]
 
     def handle_command(self, messages):
