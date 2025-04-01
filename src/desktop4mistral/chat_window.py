@@ -118,6 +118,8 @@ class ChatWindow(QMainWindow):
             self.modelActions.append(model_action)
             models_menu.addAction(model_action)
 
+        print("Models list initialized")
+
     def set_model(self, model, _):
         """Set the current Mistral model"""
         self.mistralClient.setModel(model)
@@ -229,6 +231,7 @@ class ChatWindow(QMainWindow):
         layout.addWidget(input_widget)
 
         self.inputField.installEventFilter(self)
+        print("UI initialized")
 
     def eventFilter(self, obj, event):
         """Handle keyboard events for the input field"""

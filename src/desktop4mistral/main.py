@@ -18,7 +18,8 @@ def main():
         window = ChatWindow()
         window.show()
         sys.exit(app.exec())
-    except:
+    except Exception as e:
+        print(e)
         pass
     finally:
         sys.stderr.close()

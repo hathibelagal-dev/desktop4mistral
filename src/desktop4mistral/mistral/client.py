@@ -22,6 +22,10 @@ class Client:
 
         url = self.base_url + "models"
         response = requests.get(url, headers=self.headers)
+        if response.status_code == 401:
+            import sys
+            print("Couldn't access Mistral API. Please check your API key.")
+            sys.exit(1)
         self.model_data = response.json()["data"]
         return self.model_data
 
@@ -34,6 +38,7 @@ class Client:
         for model in models:
             if model["capabilities"]["completion_chat"] and model["id"]:
                 outputs.append(model["id"])
+                print(f"Added {model['id']}")
         return outputs
 
     def execute_python_code(self, code):
